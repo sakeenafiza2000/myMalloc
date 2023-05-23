@@ -15,6 +15,8 @@ int main(int argc, char *argv[])
 	 * must be first call in the program
 	 */
 	InitMyMalloc();
+    printf("FREE LIST before malloc()\n");
+    PrintMyMallocFreeList();
 
 	a1 = (char *)MyMalloc(128);
 	if(a1 == NULL)
