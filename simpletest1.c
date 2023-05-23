@@ -7,6 +7,7 @@
 int main(int argc, char *argv[])
 {
 	char *array;
+	char *a2;
 	int i;
 
 	/*
@@ -28,9 +29,34 @@ int main(int argc, char *argv[])
 	}
 	array[9] = 0;
 
-	printf("here is my nifty new string: %s\n",array);
+	for(i=0; i < 9; i++)
+	{
+		array[i] = 'a' + i;
+	}
+	array[9] = 0;
+
+	printf("here is my nifty new string array: %s\n",array); 
+
+	a2 = MyMalloc(10);
+	if(a2 == NULL)
+	{
+		fprintf(stderr,"call to MyMalloc() failed\n");
+		fflush(stderr);
+		exit(1);
+	}
+
+	for(i=0; i < 9; i++)
+	{
+		a2[i] = 'a' + i;
+	}
+	a2[9] = 0;
+
+	printf("here is my nifty new string a2: %s\n",a2); 
     PrintMyMallocFreeList();
-	//MyFree(array);
+	MyFree(array);
+	PrintMyMallocFreeList();
+	MyFree(a2);
+	PrintMyMallocFreeList();
 
 	return(0);
 }
