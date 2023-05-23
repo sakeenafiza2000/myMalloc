@@ -73,6 +73,7 @@ void MyFree(void *buffer)
         struct malloc_stc *current = MyAllocatedList;
         struct malloc_stc *prev = NULL;
 
+        // Find the allocated block associated with the buffer pointer.
         while (current != NULL && current->buffer != buffer)
         {
             prev = current;
@@ -81,16 +82,47 @@ void MyFree(void *buffer)
 
         if (current != NULL)
         {
+            // Remove the block from the allocated list.
             if (prev == NULL)
                 MyAllocatedList = current->next;
             else
                 prev->next = current->next;
 
+            // Add the block to the free list.
             current->next = MyFreeList;
             MyFreeList = current;
+
+            // Perform coalescing if possible.
+            struct malloc_stc *mergedBlock = MyFreeList;
+            struct malloc_stc *mergedPrev = NULL;
+
+            while (mergedBlock != NULL)
+            {
+                struct malloc_stc *nextBlock = mergedBlock->next;
+
+                // Check if the current block and the next block in the free list are adjacent.
+                if (nextBlock != NULL && mergedBlock->buffer + mergedBlock->size + sizeof(struct malloc_stc) == nextBlock->buffer)
+                {
+                    // Merge the two blocks by updating the size and buffer of the current block.
+                    mergedBlock->size += nextBlock->size + sizeof(struct malloc_stc);
+                    mergedBlock->next = nextBlock->next;
+
+                    // Remove the next block from the free list.
+                    if (mergedPrev == NULL)
+                        MyFreeList = mergedBlock;
+                    else
+                        mergedPrev->next = mergedBlock;
+                }
+                else
+                {
+                    mergedPrev = mergedBlock;
+                    mergedBlock = nextBlock;
+                }
+            }
         }
     }
 }
+
 
 void PrintMyMallocFreeList()
 {
