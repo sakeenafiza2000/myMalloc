@@ -81,10 +81,13 @@ void *MyMalloc(int size)
     return NULL;
 }
 
+//By incorporating coalescing, the MyFree function merges adjacent free blocks, which helps prevent fragmentation and 
+//improves the efficiency of future allocations.
 void MyFree(void *buffer)
 {
     if (buffer != NULL)
     {
+        //Initialize two pointers, current and prev, to traverse the MyAllocatedList and locate the allocated block associated with the buffer pointer.
         struct malloc_stc *current = MyAllocatedList;
         struct malloc_stc *prev = NULL;
 
@@ -95,6 +98,8 @@ void MyFree(void *buffer)
             current = current->next;
         }
 
+        //If a matching allocated block is found, remove it from the MyAllocatedList. If prev is NULL, it means the allocated block is the first node in the list, 
+        //so update MyAllocatedList to point to the next node. Otherwise, update the next pointer of the previous node to skip the current block.
         if (current != NULL)
         {
             // Remove the block from the allocated list.
@@ -116,6 +121,8 @@ void MyFree(void *buffer)
                 struct malloc_stc *nextBlock = mergedBlock->next;
 
                 // Check if the current block and the next block in the free list are adjacent.
+                //This is done by comparing the buffer address of the current block plus its size plus the size of the struct malloc_stc 
+                //with the buffer address of the next block. If they are adjacent, they can be merged.
                 if (nextBlock != NULL && mergedBlock->buffer + mergedBlock->size + sizeof(struct malloc_stc) == nextBlock->buffer)
                 {
                     // Merge the two blocks by updating the size and buffer of the current block.
