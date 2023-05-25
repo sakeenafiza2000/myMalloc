@@ -14,15 +14,26 @@ static struct malloc_stc *MyAllocatedList = NULL;
 // unsigned char represents a byte of data
 static unsigned char MyBuff[MAX_MALLOC_SIZE];
 
+
+//initialize the buffer so there is one big block containing all of the free storage you can allocate
+//initialize the free list head pointer to point to this block
 void InitMyMalloc()
 {
+    //assigns the address of the MyBuff array to the MyFreeList pointer. 
+    //It casts the address to the type struct malloc_stc* to ensure proper pointer arithmetic.
     MyFreeList = (struct malloc_stc *)MyBuff;
     MyFreeList->next = NULL;
+    //It calculates the size of the free storage available in the buffer.
     MyFreeList->size = sizeof(MyBuff) - sizeof(struct malloc_stc);
+    //It assigns the address of the first byte of usable storage in the buffer to the buffer pointer of the MyFreeList node.
+    //It calculates this address by adding the size of the struct malloc_stc structure to the address of MyBuff.
+    //we effectively move the pointer forward by sizeof(struct malloc_stc) bytes.
     MyFreeList->buffer = (unsigned char *)(MyBuff + sizeof(struct malloc_stc));
     MyAllocatedList = NULL;
 }
 
+//find a free block in the free list that can accommodate the requested size. If the free block is larger 
+//than the requested size, it splits the block into an allocated block and a smaller remaining free block. 
 void *MyMalloc(int size)
 {
     struct malloc_stc *current = MyFreeList;
@@ -32,11 +43,15 @@ void *MyMalloc(int size)
     {
         if (current->size >= size)
         {
+            //Check if there is enough space in the current block to split it 
+            //into two blocks: one allocated block and one remaining free block.
             if (current->size - size > sizeof(struct malloc_stc))
             {
                 struct malloc_stc *newBlock = (struct malloc_stc *)(current->buffer + size);
                 newBlock->next = current->next;
+                //to represent the remaining free block size.
                 newBlock->size = current->size - size - sizeof(struct malloc_stc);
+                 //to point to the beginning of the remaining free block.
                 newBlock->buffer = current->buffer + size + sizeof(struct malloc_stc);
                 if (current == MyFreeList)
                     MyFreeList = newBlock;
@@ -55,7 +70,7 @@ void *MyMalloc(int size)
             MyAllocatedList = current;
 
             current->size = size;
-
+            //return a pointer to the allocated block by casting current->buffer to void*.
             return (void *)current->buffer;
         }
 
